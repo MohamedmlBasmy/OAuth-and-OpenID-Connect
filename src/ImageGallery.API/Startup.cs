@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ImageGallery.API
 {
@@ -22,6 +23,7 @@ namespace ImageGallery.API
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
         
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -33,13 +35,13 @@ namespace ImageGallery.API
             #region Using JwtBearer
             //by importing IdentityServer4.AccessTokenValidation
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+                .AddIdentityServerAuthentication(options =>
                 {
                     //the api needs this to load meta data documents from the IDP, and this also responsible for access token validation
                     options.Authority = "https://localhost:5001";
-                    options.TokenValidationParameters.ValidateAudience = false;
+                    //options.TokenValidationParameters.ValidateAudience = true;
                     //this enures that imagegallaryapi is an audience value in the token
-                    options.Audience = "imagegallaryapi";
+                    options.ApiName = "imagegalleryapi";
                 });
             #endregion
 

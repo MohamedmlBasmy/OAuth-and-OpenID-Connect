@@ -67,12 +67,9 @@ namespace ImageGallery.Client
                     options.Authority = "https://localhost:5001/"; 
                     options.ClientId = "imagegallary";
                     options.ResponseType = "code";
-                    //options.UsePkce = true;
-                    //options.Scope.Add("openid");
-                    //options.Scope.Add("profile");
                     options.Scope.Add("address");
                     options.Scope.Add("roles");
-                    options.Scope.Add("imagegallaryapi");
+                    options.Scope.Add("imagegalleryapi");
                     //if you want a custum claim to be visible in the Id token.
                     options.ClaimActions.MapUniqueJsonKey("role", "role");
                     options.SaveTokens = true;

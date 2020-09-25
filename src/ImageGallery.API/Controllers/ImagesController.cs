@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace ImageGallery.API.Controllers
 {
@@ -22,21 +24,25 @@ namespace ImageGallery.API.Controllers
         public ImagesController(
             IGalleryRepository galleryRepository,
             IWebHostEnvironment hostingEnvironment,
-            IMapper mapper)
-        {
-            _galleryRepository = galleryRepository ?? 
+            IMapper mapper) {
+            _galleryRepository = galleryRepository ??
                 throw new ArgumentNullException(nameof(galleryRepository));
-            _hostingEnvironment = hostingEnvironment ?? 
+            _hostingEnvironment = hostingEnvironment ??
                 throw new ArgumentNullException(nameof(hostingEnvironment));
-            _mapper = mapper ?? 
+            _mapper = mapper ??
                 throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet()]
-        public IActionResult GetImages()
-        {
+        public IActionResult GetImages() {
+            foreach (var claim in User.Claims)
+            {
+                Debug.WriteLine(claim.Type + " " + claim.Value);
+            }
+            var userId = User.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
             // get from repo
-            var imagesFromRepo = _galleryRepository.GetImages();
+            var imagesFromRepo = _galleryRepository.GetImages(userId);
+
 
             // map to model
             var imagesToReturn = _mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
@@ -46,8 +52,9 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpGet("{id}", Name = "GetImage")]
-        public IActionResult GetImage(Guid id)
-        {          
+        public IActionResult GetImage(Guid id) {
+
+
             var imageFromRepo = _galleryRepository.GetImage(id);
 
             if (imageFromRepo == null)
@@ -61,8 +68,11 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpPost()]
-        public IActionResult CreateImage([FromBody] ImageForCreation imageForCreation)
-        {
+        [Authorize(Roles = "PayingUser")]
+        public IActionResult CreateImage([FromBody] ImageForCreation imageForCreation) {
+
+            var userId = User.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+
             // Automapper maps only the Title in our configuration
             var imageEntity = _mapper.Map<Entities.Image>(imageForCreation);
 
@@ -75,7 +85,7 @@ namespace ImageGallery.API.Controllers
 
             // create the filename
             string fileName = Guid.NewGuid().ToString() + ".jpg";
-            
+
             // the full file path
             var filePath = Path.Combine($"{webRootPath}/images/{fileName}");
 
@@ -85,6 +95,7 @@ namespace ImageGallery.API.Controllers
             // fill out the filename
             imageEntity.FileName = fileName;
 
+            imageEntity.OwnerId = userId;
             // ownerId should be set - can't save image in starter solution, will
             // be fixed during the course
             //imageEntity.OwnerId = ...;
@@ -102,8 +113,7 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteImage(Guid id)
-        {            
+        public IActionResult DeleteImage(Guid id) {
             var imageFromRepo = _galleryRepository.GetImage(id);
 
             if (imageFromRepo == null)
@@ -119,9 +129,8 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateImage(Guid id, 
-            [FromBody] ImageForUpdate imageForUpdate)
-        {
+        public IActionResult UpdateImage(Guid id,
+            [FromBody] ImageForUpdate imageForUpdate) {
             var imageFromRepo = _galleryRepository.GetImage(id);
             if (imageFromRepo == null)
             {

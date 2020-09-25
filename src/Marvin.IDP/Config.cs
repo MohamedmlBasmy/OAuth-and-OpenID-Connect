@@ -21,8 +21,19 @@ namespace Marvin.IDP
 
         public static IEnumerable<ApiScope> ApiScopes =>
             new ApiScope[]
-            { 
-                new ApiScope("imagegallaryapi","Image Gallary API")
+            {
+                new ApiScope(name: "imagegalleryapi",displayName: "Image Gallary API")
+            };
+
+        public static IEnumerable<ApiResource> Apis =>
+            new ApiResource[]
+            {
+                new ApiResource{ 
+                    Name = "imagegalleryapi",
+                    DisplayName = "Image Gallery API",
+                    Scopes = new List<string> { "imagegalleryapi"},
+                    UserClaims  = new List<string> {"role"}
+                }
             };
 
         public static IEnumerable<Client> Clients =>
@@ -40,7 +51,7 @@ namespace Marvin.IDP
                             IdentityServerConstants.StandardScopes.Profile,
                             IdentityServerConstants.StandardScopes.Address,
                             "roles",
-                            "imagegallaryapi"
+                            "imagegalleryapi"
                      },
                      ClientSecrets = {new Secret("secret".Sha256())},
                      PostLogoutRedirectUris= new List<string>

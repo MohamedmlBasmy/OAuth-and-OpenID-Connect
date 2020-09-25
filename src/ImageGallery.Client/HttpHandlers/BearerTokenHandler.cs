@@ -14,6 +14,7 @@ namespace ImageGallery.Client.HttpHandlers
         public BearerTokenHandler(IHttpContextAccessor httpContextAccessor) {
             this._httpContextAccessor = httpContextAccessor;
         }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, 
             CancellationToken cancellationToken) {
 
@@ -23,9 +24,19 @@ namespace ImageGallery.Client.HttpHandlers
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
                 request.SetBearerToken(accessToken);
+                request.Headers.Add("new-header", "custom header");
             }
 
-            return await base.SendAsync(request, cancellationToken);
+            var response  =  await base.SendAsync(request, cancellationToken);
+
+            response.Headers.Add("name", "name");
+
+            foreach (var header in response.Headers)
+            {
+                var x = header.Key;
+            }
+
+            return response;
         }
     }
 }

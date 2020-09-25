@@ -29,6 +29,9 @@ namespace ImageGallery.Client.Controllers
         }
 
         public async Task<IActionResult> Index() {
+
+            Console.WriteLine("Index in the Gallary Controller");
+
             await IdentityInformation();
 
             var httpClient = _httpClientFactory.CreateClient("APIClient");
